@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Otis Quest 🗺️</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Arial, sans-serif; background:#0a0a1a; color:#fff; min-height:100vh; }
+.page { display:none; min-height:100vh; padding:20px; }
+.page.active { display:block; }
+#home,#win,#parent-login,#team-select { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:100vh; padding:20px; }
+#home.active,#win.active,#parent-login.active,#team-select.active { display:flex; }
+.title { font-size:2.4rem; font-weight:900; background:linear-gradient(135deg,#00d4ff,#ff2d78); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:8px; }
+.subtitle { color:#888; margin-bottom:40px; font-size:0.9rem; letter-spacing:3px; text-transform:uppercase; }
+.btn { display:block; width:100%; max-width:320px; margin:8px auto; padding:16px; border:none; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; transition:opacity .2s; }
+.btn:hover { opacity:0.85; }
+.btn-blue  { background:linear-gradient(135deg,#0055ff,#00d4ff); color:#fff; }
+.btn-pink  { background:linear-gradient(135deg,#cc0055,#ff2d78); color:#fff; }
+.btn-green { background:linear-gradient(135deg,#1a8f00,#39ff14); color:#000; }
+.btn-grey  { background:#1a1a3a; color:#aaa; border:2px solid #333; }
+.card { background:#11112a; border:2px solid #2a2a55; border-radius:16px; padding:20px; margin-bottom:16px; }
+.card-title { color:#ffe600; font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:2px; margin-bottom:12px; }
+label { display:block; font-size:0.75rem; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+input { width:100%; padding:14px; background:#1a1a35; border:2px solid #333; border-radius:10px; color:#fff; font-size:1rem; outline:none; margin-bottom:12px; }
+input:focus { border-color:#00d4ff; }
+.team-row { display:flex; align-items:center; gap:10px; background:#1a1a35; border:2px solid #333; border-radius:10px; padding:12px; margin-bottom:8px; }
+.team-row input { margin:0; background:transparent; border:none; flex:1; padding:0; }
+.team-row input:focus { border:none; outline:none; }
+.team-btn { display:flex; align-items:center; gap:12px; background:#11112a; border:2px solid #333; border-radius:14px; padding:16px; margin-bottom:10px; cursor:pointer; width:100%; max-width:440px; color:#fff; text-align:left; }
+.team-btn:hover { border-color:#00d4ff; }
+.team-btn .arrow { margin-left:auto; font-size:1.3rem; color:#555; }
+.prog-bg { background:#1a1a35; border-radius:100px; height:10px; margin-bottom:20px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,#00d4ff,#ff2d78); transition:width 0.5s; }
+.game-header { display:flex; justify-content:space-between; align-items:center; padding:10px 0 16px; }
+.team-badge { background:#181838; border:2px solid #00d4ff; border-radius:10px; padding:8px 14px; font-weight:900; font-size:0.95rem; }
+.step-badge { text-align:center; }
+.step-num { font-size:1.4rem; font-weight:900; color:#ffe600; display:block; }
+.step-lbl { font-size:0.65rem; color:#39ff14; }
+.clue-box { background:#11112a; border:2px solid #333; border-radius:18px; padding:24px; text-align:center; margin-bottom:16px; }
+.clue-icon { font-size:3rem; margin-bottom:12px; }
+.clue-text { font-size:1.05rem; font-weight:800; color:#ffe600; background:rgba(255,230,0,0.07); border:2px dashed rgba(255,230,0,0.3); border-radius:12px; padding:16px; margin-bottom:16px; line-height:1.6; }
+.clue-hint { color:#888; font-size:0.85rem; margin-bottom:12px; }
+.code-row { display:flex; gap:8px; }
+.code-row input { flex:1; text-align:center; font-size:1.2rem; font-weight:900; letter-spacing:4px; margin:0; }
+.code-btn { background:linear-gradient(135deg,#0055ff,#00d4ff); color:#fff; border:none; border-radius:10px; padding:14px 20px; font-size:1rem; font-weight:800; cursor:pointer; }
+.q-box { border-radius:18px; padding:24px; margin-bottom:16px; }
+.q-minecraft { background:rgba(90,158,47,0.12);  border:2px solid rgba(90,158,47,0.4); }
+.q-roblox    { background:rgba(232,39,29,0.12);   border:2px solid rgba(232,39,29,0.4); }
+.q-fortnite  { background:rgba(139,43,226,0.12);  border:2px solid rgba(139,43,226,0.4); }
+.q-stranger  { background:rgba(232,125,30,0.12);  border:2px solid rgba(232,125,30,0.4); }
+.topic-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:800; text-transform:uppercase; margin-bottom:12px; }
+.tb-mc { background:rgba(90,158,47,0.3);  color:#7acc3e; }
+.tb-rb { background:rgba(232,39,29,0.3);  color:#ff8080; }
+.tb-fn { background:rgba(139,43,226,0.3); color:#cc88ff; }
+.tb-st { background:rgba(232,125,30,0.3); color:#ffaa4c; }
+.q-text { font-size:1.1rem; font-weight:800; margin-bottom:16px; line-height:1.5; }
+.opt { display:flex; align-items:center; gap:10px; width:100%; padding:14px; background:#1a1a35; border:2px solid #333; border-radius:10px; color:#fff; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:8px; text-align:left; }
+.opt:hover:not(:disabled) { border-color:#00d4ff; background:rgba(0,212,255,0.08); }
+.opt.correct { border-color:#39ff14!important; background:rgba(57,255,20,0.12)!important; color:#39ff14; }
+.opt.wrong   { border-color:#ff2d78!important;  background:rgba(255,45,120,0.12)!important; color:#ff2d78; }
+.opt-l { width:28px; height:28px; background:#333; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; flex-shrink:0; }
+.feedback { border-radius:14px; padding:20px; margin-bottom:16px; text-align:center; display:none; }
+.fb-correct { background:rgba(57,255,20,0.1);  border:2px solid #39ff14; }
+.fb-wrong   { background:rgba(255,45,120,0.1); border:2px solid #ff2d78; }
+.fb-icon { font-size:2.5rem; margin-bottom:6px; }
+.fb-title-c { color:#39ff14; font-size:1.1rem; font-weight:900; margin-bottom:6px; }
+.fb-title-w { color:#ff2d78; font-size:1.1rem; font-weight:900; margin-bottom:6px; }
+.fb-msg { color:#888; font-size:0.9rem; line-height:1.5; }
+.trophy { font-size:5rem; animation:rock 1s ease-in-out infinite alternate; }
+@keyframes rock { 0%{transform:rotate(-10deg) scale(1)} 100%{transform:rotate(10deg) scale(1.15)} }
+.win-title { font-size:1.8rem; font-weight:900; background:linear-gradient(135deg,#ffe600,#39ff14); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:12px 0 6px; }
+.win-team  { font-size:1.4rem; font-weight:900; margin-bottom:4px; }
+.win-score { color:#00d4ff; font-size:0.85rem; margin-bottom:30px; }
+.pin-row { display:flex; gap:8px; justify-content:center; margin-bottom:16px; }
+.pin-d { width:56px; height:64px; background:#1a1a35; border:2px solid #333; border-radius:12px; text-align:center; font-size:1.5rem; font-weight:900; color:#ffe600; outline:none; }
+.pin-d:focus { border-color:#ff2d78; }
+.live { display:inline-flex; align-items:center; gap:6px; background:rgba(57,255,20,0.1); border:1px solid #39ff14; border-radius:20px; padding:4px 12px; font-size:0.75rem; font-weight:800; color:#39ff14; }
+.dot { width:8px; height:8px; background:#39ff14; border-radius:50%; animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+.section-lbl { font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:2px; color:#ff2d78; margin-bottom:10px; margin-top:20px; }
+.tp { background:#11112a; border:2px solid #333; border-radius:14px; padding:16px; margin-bottom:10px; }
+.tp.lead { border-color:#ffe600; }
+.tp-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.tp-name { font-weight:900; font-size:1rem; }
+.tp-status { font-size:0.8rem; color:#888; }
+.tp-bar-bg { background:#1a1a35; border-radius:100px; height:8px; margin-bottom:6px; overflow:hidden; }
+.tp-bar { height:100%; border-radius:100px; background:linear-gradient(90deg,#00d4ff,#9933ff); transition:width 0.5s; }
+.tp-stats { display:flex; justify-content:space-between; font-size:0.8rem; color:#888; }
+.act-item { padding:12px 16px; border-bottom:1px solid #1a1a35; display:flex; align-items:center; gap:10px; font-size:0.85rem; }
+.act-item:last-child { border-bottom:none; }
+.act-time { margin-left:auto; font-size:0.72rem; color:#555; flex-shrink:0; }
+.qmap-item { padding:8px 16px; border-bottom:1px solid #1a1a35; display:flex; align-items:center; gap:10px; font-size:0.82rem; }
+.qmap-item:last-child { border-bottom:none; }
+.qnum { width:26px; height:26px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:800; flex-shrink:0; }
+.qn-done { background:rgba(57,255,20,0.2);  color:#39ff14; border:1px solid rgba(57,255,20,0.4); }
+.qn-cur  { background:rgba(0,212,255,0.2);  color:#00d4ff; border:1px solid rgba(0,212,255,0.4); }
+.qn-up   { background:#1a1a35; color:#555; border:1px solid #333; }
+.qmap-topic { margin-left:auto; font-size:0.72rem; color:#666; flex-shrink:0; }
+.admin-bar { background:rgba(255,45,120,0.07); border:1px solid rgba(255,45,120,0.25); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:10px; }
+.btn-danger { background:rgba(255,45,120,0.2); border:1px solid rgba(255,45,120,0.4); color:#ff2d78; padding:8px 16px; border-radius:8px; font-size:0.85rem; font-weight:800; cursor:pointer; }
+.back-btn { background:#1a1a35; border:2px solid #333; color:#fff; width:40px; height:40px; border-radius:10px; font-size:1.1rem; cursor:pointer; flex-shrink:0; }
+.back-btn:hover { border-color:#00d4ff; }
+.screen-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-top:8px; }
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-80px); background:#11112a; border:2px solid #39ff14; border-radius:12px; padding:10px 20px; font-weight:800; font-size:0.9rem; color:#39ff14; z-index:9999; transition:transform 0.4s; white-space:nowrap; pointer-events:none; }
+.toast.err  { border-color:#ff2d78; color:#ff2d78; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.game-wrap  { max-width:560px; margin:0 auto; }
+.dash-wrap  { max-width:760px; margin:0 auto; }
+.setup-wrap { max-width:560px; margin:0 auto; }
+.finale-banner { background:rgba(255,230,0,0.08); border:2px solid #ffe600; border-radius:14px; padding:14px 18px; margin-bottom:16px; text-align:center; }
+.finale-banner-title { color:#ffe600; font-size:0.85rem; font-weight:900; text-transform:uppercase; letter-spacing:2px; }
+.finale-banner-sub   { color:#888; font-size:0.8rem; margin-top:4px; }
+
+/* ── Parent Q&A panel ─────────────────────────────────────────────────── */
+.qa-card { background:#11112a; border:2px solid #2a2a55; border-radius:16px; margin-bottom:10px; overflow:hidden; }
+.qa-header { display:flex; align-items:center; gap:10px; padding:14px 16px; cursor:pointer; user-select:none; }
+.qa-header:hover { background:rgba(255,255,255,0.03); }
+.qa-num { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:900; flex-shrink:0; background:#1a1a35; color:#aaa; border:1px solid #333; }
+.qa-num.finale { background:rgba(255,230,0,0.15); color:#ffe600; border-color:rgba(255,230,0,0.4); }
+.qa-clue-text { flex:1; font-size:0.88rem; font-weight:700; color:#fff; }
+.qa-code { font-size:0.72rem; font-weight:900; color:#00d4ff; background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3); border-radius:6px; padding:3px 8px; flex-shrink:0; }
+.qa-chevron { color:#555; font-size:0.9rem; flex-shrink:0; transition:transform 0.2s; }
+.qa-card.open .qa-chevron { transform:rotate(180deg); }
+.qa-body { display:none; padding:0 16px 16px; border-top:1px solid #1a1a35; }
+.qa-card.open .qa-body { display:block; }
+.qa-topic { margin:12px 0 8px; }
+.qa-question { font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:12px; line-height:1.5; }
+.qa-opt { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; margin-bottom:6px; font-size:0.88rem; font-weight:700; border:2px solid #1a1a35; background:#0e0e22; }
+.qa-opt.qa-correct { border-color:#39ff14; background:rgba(57,255,20,0.08); color:#39ff14; }
+.qa-opt-l { width:24px; height:24px; border-radius:5px; background:#333; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:900; flex-shrink:0; }
+.qa-opt.qa-correct .qa-opt-l { background:rgba(57,255,20,0.25); color:#39ff14; }
+.qa-exp { margin-top:10px; padding:10px 12px; background:rgba(0,212,255,0.06); border:1px solid rgba(0,212,255,0.2); border-radius:8px; font-size:0.82rem; color:#aaa; line-height:1.6; }
+.qa-exp::before { content:'💡 '; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="page active">
+  <div style="font-size:2rem;margin-bottom:12px">🗺️ 🎮 🔍</div>
+  <div class="title">OTIS QUEST</div>
+  <div class="subtitle">Home Adventure Edition</div>
+  <button class="btn btn-blue"  onclick="go('setup')">⚙️ Set Up Game</button>
+  <button class="btn btn-pink"  onclick="go('team-select')">🎮 Play!</button>
+  <button class="btn btn-grey"  onclick="go('parent-login')" style="margin-top:6px">👨‍👩‍👧 Parent Dashboard</button>
+  <div id="home-status" style="margin-top:16px;font-size:0.8rem;color:#555">Connecting…</div>
+</div>
+
+<!-- SETUP -->
+<div id="setup" class="page">
+  <div class="setup-wrap">
+    <div class="screen-header">
+      <button class="back-btn" onclick="go('home')">←</button>
+      <div style="font-size:1rem;font-weight:900;color:#00d4ff">GAME SETUP</div>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 Team Names</div>
+      <div id="teams-grid"></div>
+      <button class="btn btn-grey" onclick="addTeam()" style="margin-top:8px">+ Add Team</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Parent PIN</div>
+      <label>4-digit PIN (default: 1234)</label>
+      <input type="number" id="pin-setup" placeholder="e.g. 9999" maxlength="4" oninput="this.value=this.value.slice(0,4)">
+    </div>
+    <div class="card">
+      <div class="card-title">📍 How It Works</div>
+      <p style="color:#888;font-size:0.88rem;line-height:1.7">Each team sees a <strong style="color:#fff">riddle clue</strong> pointing to a spot on your property. They run there, find the <strong style="color:#ffe600">secret code</strong> you've hidden, type it in, and unlock a quiz question. All teams sync live to the parent dashboard.</p>
+      <p style="color:#888;font-size:0.88rem;line-height:1.7;margin-top:10px">🔀 <strong style="color:#fff">Staggered start:</strong> Each team begins at a different clue so no one crowds the same spot. Everyone meets at <strong style="color:#ffe600">Clue 11 together</strong> for the grand finale!</p>
+    </div>
+    <button class="btn btn-green" onclick="saveSetup()">🚀 Save &amp; Launch Game!</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- TEAM SELECT -->
+<div id="team-select" class="page">
+  <div style="font-size:1rem;font-weight:900;color:#00d4ff;margin-bottom:24px">SELECT YOUR TEAM</div>
+  <div id="teams-list" style="width:100%"></div>
+  <button class="btn btn-grey" onclick="go('home')" style="margin-top:8px">← Back</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="page">
+  <div class="game-wrap">
+    <div class="game-header">
+      <div class="team-badge">
+        <span id="g-emoji">🦁</span>
+        <span id="g-name" style="margin-left:6px">Team</span>
+      </div>
+      <div class="step-badge">
+        <span class="step-num" id="g-step">1/11</span>
+        <span class="step-lbl">QUESTIONS</span>
+      </div>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="g-bar" style="width:0%"></div></div>
+    <div id="clue-step">
+      <div id="finale-clue-banner" class="finale-banner" style="display:none">
+        <div class="finale-banner-title">⭐ Grand Finale — Q11!</div>
+        <div class="finale-banner-sub">All teams converge here for the final challenge!</div>
+      </div>
+      <div class="clue-box">
+        <div class="clue-icon" id="cl-icon">🔍</div>
+        <div class="clue-text" id="cl-text">Loading...</div>
+        <div class="clue-hint">Find this spot and type the secret code!</div>
+        <div class="code-row">
+          <input type="text" id="code-in" placeholder="Enter code..." inputmode="numeric" autocomplete="off">
+          <button class="code-btn" onclick="checkCode()">GO!</button>
+        </div>
+      </div>
+    </div>
+    <div id="q-step" style="display:none">
+      <div id="finale-q-banner" class="finale-banner" style="display:none">
+        <div class="finale-banner-title">⭐ Grand Finale — Q11!</div>
+        <div class="finale-banner-sub">All teams are on this one together!</div>
+      </div>
+      <div class="q-box" id="q-box">
+        <div class="topic-badge" id="q-badge"></div>
+        <div class="q-text" id="q-text"></div>
+        <div id="q-opts"></div>
+      </div>
+      <div class="feedback" id="feedback">
+        <div class="fb-icon" id="fb-icon"></div>
+        <div id="fb-title"></div>
+        <div class="fb-msg"  id="fb-msg"></div>
+        <br>
+        <button class="btn btn-blue" id="next-btn" onclick="nextStep()" style="max-width:300px">Next Clue →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div id="win" class="page">
+  <div class="trophy">🏆</div>
+  <div class="win-title">QUEST COMPLETE!</div>
+  <div class="win-team"  id="win-team">Team</div>
+  <div class="win-score" id="win-score"></div>
+  <button class="btn btn-green" onclick="go('team-select')" style="margin-bottom:10px">Play Again 🔄</button>
+  <button class="btn btn-grey"  onclick="go('home')">← Home</button>
+</div>
+
+<!-- PARENT LOGIN -->
+<div id="parent-login" class="page">
+  <div style="font-size:3rem;margin-bottom:12px">🔒</div>
+  <div style="font-size:1.1rem;font-weight:900;color:#ff2d78;margin-bottom:6px">PARENT DASHBOARD</div>
+  <p style="color:#888;margin-bottom:20px">Enter your 4-digit PIN</p>
+  <div class="pin-row">
+    <input class="pin-d" type="password" maxlength="1" id="p0" oninput="pnav(0)" inputmode="numeric">
+    <input class="pin-d" type="password" maxlength="1" id="p1" oninput="pnav(1)" inputmode="numeric">
+    <input class="pin-d" type="password" maxlength="1" id="p2" oninput="pnav(2)" inputmode="numeric">
+    <input class="pin-d" type="password" maxlength="1" id="p3" oninput="pnav(3)" inputmode="numeric">
+  </div>
+  <p id="pin-hint" style="color:#888;font-size:0.8rem;margin-bottom:16px">Default PIN: 1234</p>
+  <button class="btn btn-pink" onclick="checkPin()" style="max-width:280px;margin-bottom:10px">Unlock 🔓</button>
+  <button class="btn btn-grey" onclick="go('home')"  style="max-width:280px">← Back</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+  <div class="dash-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;margin-bottom:4px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:1rem;font-weight:900;color:#ff2d78">PARENT DASHBOARD</div>
+        <div style="font-size:0.78rem;color:#555;margin-top:2px">Live sync · Firebase</div>
+      </div>
+      <div class="live"><div class="dot"></div> LIVE</div>
+    </div>
+
+    <div class="section-lbl">🏁 Team Standings</div>
+    <div id="dash-teams"></div>
+
+    <div class="section-lbl">📡 Activity Feed</div>
+    <div class="card" style="padding:0"><div id="act-feed"></div></div>
+
+    <div class="section-lbl">📋 Clue Map &amp; Codes</div>
+    <div class="card" style="padding:0"><div id="qmap-list"></div></div>
+
+    <div class="section-lbl">🧠 All Questions &amp; Answers</div>
+    <div id="qa-list"></div>
+
+    <div class="admin-bar">
+      <span style="color:#888;font-size:0.85rem;font-weight:700">🔧 Admin</span>
+      <button class="btn-danger" onclick="resetGame()">🔄 Reset All Progress</button>
+    </div>
+    <div style="height:20px"></div>
+    <button class="btn btn-grey" onclick="go('home')" style="margin-bottom:30px">← Back to Home</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js)";
+import { getDatabase, ref, set, get, onValue } from "[gstatic.com](https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js)";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBjJ0B9oPzTQcDR9DRkWiKtCep9IpuQpx0",
+  authDomain:        "quest-hunt-8791c.firebaseapp.com",
+  projectId:         "quest-hunt-8791c",
+  storageBucket:     "quest-hunt-8791c.firebasestorage.app",
+  messagingSenderId: "570522803722",
+  appId:             "1:570522803722:web:80fc6b122be57a602c09f3",
+  databaseURL:       "[quest-hunt-8791c-default-rtdb.firebaseio.com](https://quest-hunt-8791c-default-rtdb.firebaseio.com)"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+const dbRef = p => ref(db, p);
+
+// ── QUEST DATA ────────────────────────────────────────────────────────────────
+const Q = [
+  { icon:'🧌', clue:'Find the place a troll would live!', code:'5368',
+    tl:'⛏️ Minecraft', tb:'tb-mc', qc:'q-minecraft',
+    q:'What material do you craft your very first tool with in Minecraft?',
+    opts:['Cobblestone','Oak Wood','Iron Ingot','Diamonds'], ans:1,
+    exp:'Wood first! Punch a tree, get planks, make sticks, then your wooden pickaxe!' },
+  { icon:'🌳', clue:'Head to the biggest tree in the sheep paddock!', code:'597',
+    tl:'🔦 Stranger Things', tb:'tb-st', qc:'q-stranger',
+    q:'What is the name of the terrifying creature from the Upside Down in Season 1?',
+    opts:['The Vecna','The Mind Flayer','The Demogorgon','The Shadow'], ans:2,
+    exp:'The Demogorgon! Named after the D&D monster by the kids.' },
+  { icon:'🌱', clue:'Find the place to grow plants even in the cold!', code:'3456',
+    tl:'🎲 Roblox', tb:'tb-rb', qc:'q-roblox',
+    q:'What is the name of the virtual currency used in Roblox?',
+    opts:['PixelCoins','GameGold','RoboBucks','Robux'], ans:3,
+    exp:'Robux! Used to buy avatar items, accessories and game passes.' },
+  { icon:'💀', clue:'Find the skeleton of a shed!', code:'6789',
+    tl:'⚡ Fortnite', tb:'tb-fn', qc:'q-fortnite',
+    q:'How many players drop into a standard solo Fortnite Battle Royale match?',
+    opts:['50','75','100','150'], ans:2,
+    exp:'100 players jump from the Battle Bus! Only one wins!' },
+  { icon:'💧', clue:'Find the 3 big rain tanks!', code:'56789',
+    tl:'⛏️ Minecraft', tb:'tb-mc', qc:'q-minecraft',
+    q:'What is the name of the final boss in The End dimension in Minecraft?',
+    opts:['Wither King','Shadow Drake','End Guardian','Ender Dragon'], ans:3,
+    exp:'The Ender Dragon! Destroy the End Crystals on the obsidian pillars first!' },
+  { icon:'🚤', clue:'Find the boat on land!', code:'5678',
+    tl:'🔦 Stranger Things', tb:'tb-st', qc:'q-stranger',
+    q:'Which character has psychokinetic powers and was raised in Hawkins Lab?',
+    opts:['Max','Robin','Will','Eleven'], ans:3,
+    exp:'Eleven! She escaped the lab and uses her mind powers to fight the Upside Down!' },
+  { icon:'🐰', clue:'Find the white rabbit at the end of the driveway!', code:'3678',
+    tl:'🎲 Roblox', tb:'tb-rb', qc:'q-roblox',
+    q:'Who co-founded the Roblox platform? (His username is builderman!)',
+    opts:['Markus Persson','Gabe Newell','Phil Spencer','David Baszucki'], ans:3,
+    exp:'David Baszucki! He co-founded Roblox in 2004.' },
+  { icon:'🏚️', clue:'Find the two old sheds in front of the pool!', code:'36789',
+    tl:'⚡ Fortnite', tb:'tb-fn', qc:'q-fortnite',
+    q:'What is the flying vehicle all players jump from at the start of Fortnite?',
+    opts:['The Sky Glider','The Storm Rider','The Airship','The Battle Bus'], ans:3,
+    exp:'The Battle Bus! That iconic blue bus on a balloon!' },
+  { icon:'🐑', clue:'Find the sheep with a code!', code:'5678',
+    tl:'⛏️ Minecraft', tb:'tb-mc', qc:'q-minecraft',
+    q:'What item do you use to tame a wild wolf into your dog in Minecraft?',
+    opts:['Raw Chicken','Fish','Meat','Bone'], ans:3,
+    exp:'Bones! Get them from skeletons at night, then feed them to a wild wolf!' },
+  { icon:'📬', clue:'Where does the house mail come?', code:'6789',
+    tl:'🔦 Stranger Things', tb:'tb-st', qc:'q-stranger',
+    q:'What year is Stranger Things Season 1 set in?',
+    opts:['1979','1991','1985','1983'], ans:3,
+    exp:'1983! Packed with 80s nostalgia — the music, fashion and movie references!' },
+  // Q11 — THE GRAND FINALE (index 10) — always last for every team
+  { icon:'💦', clue:"You're going to need to get wet for this one!", code:'5667',
+    tl:'⚡ Fortnite', tb:'tb-fn', qc:'q-fortnite',
+    q:'What unique mechanic sets Fortnite apart from all other battle royale games?',
+    opts:['Bigger map','More players','Building structures','Faster storm'], ans:2,
+    exp:'Building! Collecting materials to build walls, ramps and forts is what makes Fortnite unique!' }
+];
+
+const FINALE_INDEX = Q.length - 1;   // 10
+const ROUTE_LENGTH = Q.length - 1;   // 10
+
+// ── ROUTE HELPER ──────────────────────────────────────────────────────────────
+function routeIndex(team, step) {
+  if (step >= ROUTE_LENGTH) return FINALE_INDEX;
+  return (team.startOffset + step) % ROUTE_LENGTH;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const DEF = [
+  {emoji:'🦁', name:'Team Alpha'},
+  {emoji:'🐉', name:'Team Dragon'},
+  {emoji:'🚀', name:'Team Rocket'},
+  {emoji:'🦊', name:'Team Fox'}
+];
+const EMJ = ['🦁','🐉','🚀','🦊','⚡','🔥','🌊','🎯'];
+
+function makeTeam(d, i, totalTeams) {
+  const offset = Math.round((i / totalTeams) * ROUTE_LENGTH) % ROUTE_LENGTH;
+  return {
+    emoji: d.emoji || EMJ[i] || '⭐',
+    name:  d.name  || 'Team ' + (i + 1),
+    step:  0, correct: 0, wrong: 0,
+    done: false, waitQ: false,
+    startOffset: offset
+  };
+}
+
+let localTeams = DEF.map((d, i) => makeTeam(d, i, DEF.length));
+let localPin   = '1234';
+let liveTeams  = {};
+let liveActs   = [];
+let ci         = 0;
+const T = () => localTeams[ci];
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+async function fbGet(p)       { const s = await get(dbRef(p)); return s.exists() ? s.val() : null; }
+function  fbSet(p, v)         { return set(dbRef(p), v); }
+function  pushTeam(i, t)      { return fbSet('game/teams/' + i, t); }
+function  pushAct(text, icon) {
+  const t = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  return fbSet('game/activity/' + Date.now(), {text, icon, time: t});
+}
+
+async function loadFromFB() {
+  try {
+    const data = await fbGet('game');
+    if (data) {
+      if (data.teams) {
+        liveTeams  = data.teams;
+        localTeams = Object.values(data.teams);
+        localTeams.forEach((t, i) => {
+          if (t.startOffset === undefined)
+            t.startOffset = Math.round((i / localTeams.length) * ROUTE_LENGTH) % ROUTE_LENGTH;
+        });
+      }
+      if (data.pin)      localPin = data.pin;
+      if (data.activity) liveActs = Object.values(data.activity).sort((a,b) => a.time > b.time ? 1 : -1);
+    }
+    document.getElementById('home-status').textContent = '🟢 Connected — game ready!';
+    document.getElementById('home-status').style.color = '#39ff14';
+  } catch(e) {
+    document.getElementById('home-status').textContent = '⚠️ Connection error — check internet';
+    document.getElementById('home-status').style.color = '#ff2d78';
+  }
+}
+
+function startListening() {
+  onValue(dbRef('game/teams'), snap => {
+    if (snap.exists()) {
+      liveTeams  = snap.val();
+      localTeams = Object.values(liveTeams);
+      localTeams.forEach((t, i) => {
+        if (t.startOffset === undefined)
+          t.startOffset = Math.round((i / localTeams.length) * ROUTE_LENGTH) % ROUTE_LENGTH;
+      });
+      if (document.getElementById('dashboard').classList.contains('active'))   drawDash();
+      if (document.getElementById('team-select').classList.contains('active')) drawTeamSelect();
+    }
+  });
+  onValue(dbRef('game/activity'), snap => {
+    if (snap.exists()) {
+      liveActs = Object.values(snap.val()).sort((a,b) => a.time > b.time ? 1 : -1);
+      if (document.getElementById('dashboard').classList.contains('active')) drawDash();
+    }
+  });
+  onValue(dbRef('game/pin'), snap => { if (snap.exists()) localPin = snap.val(); });
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+window.go = id => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  if (id === 'setup')       drawSetup();
+  if (id === 'team-select') drawTeamSelect();
+  if (id === 'dashboard')   drawDash();
+};
+
+// ── SETUP ─────────────────────────────────────────────────────────────────────
+function drawSetup() {
+  document.getElementById('pin-setup').value = localPin === '1234' ? '' : localPin;
+  document.getElementById('teams-grid').innerHTML = localTeams.map((t, i) => `
+    <div class="team-row">
+      <span>${t.emoji}</span>
+      <input value="${t.name}" placeholder="Team name" onchange="localTeams[${i}].name=this.value||'Team ${i+1}'">
+      <span style="font-size:0.7rem;color:#555;white-space:nowrap">starts Q${(t.startOffset||0)+1}</span>
+      ${localTeams.length > 2 ? `<button onclick="rmTeam(${i})" style="background:none;border:none;color:#ff2d78;font-size:1.2rem;cursor:pointer">✕</button>` : ''}
+    </div>`).join('');
+}
+window.drawSetup = drawSetup;
+
+window.addTeam = () => {
+  if (localTeams.length >= 8) { showToast('Max 8 teams!', 1); return; }
+  const newTeams = [...localTeams, {emoji: EMJ[localTeams.length] || '⭐', name: 'Team ' + (localTeams.length + 1)}];
+  localTeams = newTeams.map((t, i) => makeTeam(t, i, newTeams.length));
+  drawSetup();
+};
+
+window.rmTeam = i => {
+  if (localTeams.length <= 2) { showToast('Need at least 2 teams!', 1); return; }
+  localTeams.splice(i, 1);
+  localTeams = localTeams.map((t, idx) => ({
+    ...t,
+    startOffset: Math.round((idx / localTeams.length) * ROUTE_LENGTH) % ROUTE_LENGTH
+  }));
+  drawSetup();
+};
+
+window.saveSetup = async () => {
+  const p = document.getElementById('pin-setup').value.trim();
+  if (/^\d{4}$/.test(p)) localPin = p;
+  localTeams = localTeams.map((t, i) => makeTeam(t, i, localTeams.length));
+  const to = {};
+  localTeams.forEach((t, i) => to[i] = t);
+  await fbSet('game', {teams: to, pin: localPin, activity: {}});
+  showToast('Game launched! 🚀');
+  setTimeout(() => go('team-select'), 700);
+};
+
+// ── TEAM SELECT ───────────────────────────────────────────────────────────────
+function drawTeamSelect() {
+  document.getElementById('teams-list').innerHTML = localTeams.map((t, i) => `
+    <button class="team-btn" onclick="playAs(${i})">
+      <span style="font-size:2rem">${t.emoji}</span>
+      <div>
+        <div style="font-weight:900">${t.name}</div>
+        <div style="font-size:0.8rem;color:#888">${t.done ? '✅ Finished!' : 'Clue ' + (t.step + 1) + ' of 11'} · ${t.correct} correct</div>
+      </div>
+      <span class="arrow">→</span>
+    </button>`).join('');
+}
+window.drawTeamSelect = drawTeamSelect;
+window.playAs = idx => { ci = idx; go('game'); drawGame(); };
+
+// ── GAME ──────────────────────────────────────────────────────────────────────
+function drawGame() {
+  const t        = T();
+  const qi       = routeIndex(t, t.step);
+  const isFinale = t.step >= ROUTE_LENGTH;
+  document.getElementById('g-emoji').textContent = t.emoji;
+  document.getElementById('g-name').textContent  = t.name;
+  if (t.done) { showWin(); return; }
+  document.getElementById('g-step').textContent = (t.step + 1) + '/11';
+  document.getElementById('g-bar').style.width  = (t.step / 11 * 100) + '%';
+  document.getElementById('finale-clue-banner').style.display = isFinale ? 'block' : 'none';
+  document.getElementById('finale-q-banner').style.display    = isFinale ? 'block' : 'none';
+  t.waitQ ? drawQuestion(qi) : drawClue(qi);
+}
+
+function drawClue(qi) {
+  document.getElementById('clue-step').style.display = 'block';
+  document.getElementById('q-step').style.display    = 'none';
+  document.getElementById('feedback').style.display  = 'none';
+  document.getElementById('cl-icon').textContent = Q[qi].icon;
+  document.getElementById('cl-text').textContent = Q[qi].clue;
+  document.getElementById('code-in').value = '';
+  document.getElementById('code-in').onkeydown = e => { if (e.key === 'Enter') checkCode(); };
+}
+
+window.checkCode = () => {
+  const v  = document.getElementById('code-in').value.trim();
+  const qi = routeIndex(T(), T().step);
+  if (v === Q[qi].code) {
+    localTeams[ci].waitQ = true;
+    pushTeam(ci, localTeams[ci]);
+    pushAct(T().emoji + ' ' + T().name + ' found location ' + (T().step + 1) + '!', '📍');
+    drawQuestion(qi);
+  } else if (!v) {
+    showToast('Enter the secret code first!', 1);
+  } else {
+    showToast('Wrong code — keep looking! 🔍', 1);
+  }
+};
+
+function drawQuestion(qi) {
+  document.getElementById('clue-step').style.display = 'none';
+  document.getElementById('q-step').style.display    = 'block';
+  document.getElementById('feedback').style.display  = 'none';
+  const d = Q[qi];
+  document.getElementById('q-box').className = 'q-box ' + d.qc;
+  const b = document.getElementById('q-badge');
+  b.className   = 'topic-badge ' + d.tb;
+  b.textContent = d.tl;
+  document.getElementById('q-text').textContent = d.q;
+  const L = ['A','B','C','D'];
+  document.getElementById('q-opts').innerHTML = d.opts.map((o, i) => `
+    <button class="opt" id="o${i}" onclick="pick(${i})">
+      <span class="opt-l">${L[i]}</span>${o}
+    </button>`).join('');
+}
+
+window.pick = idx => {
+  const qi = routeIndex(T(), T().step);
+  const d  = Q[qi];
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  document.getElementById('o' + idx).classList.add(idx === d.ans ? 'correct' : 'wrong');
+  if (idx !== d.ans) document.getElementById('o' + d.ans).classList.add('correct');
+  const ok = idx === d.ans;
+  if (ok) localTeams[ci].correct++; else localTeams[ci].wrong++;
+  pushTeam(ci, localTeams[ci]);
+  pushAct(T().emoji + ' ' + T().name + ' — Q' + (T().step + 1) + ' ' + (ok ? 'correct ✅' : 'wrong ❌'), ok ? '✅' : '❌');
+  const fb = document.getElementById('feedback');
+  fb.className     = 'feedback ' + (ok ? 'fb-correct' : 'fb-wrong');
+  fb.style.display = 'block';
+  document.getElementById('fb-icon').textContent  = ok ? '🎉' : '😬';
+  document.getElementById('fb-title').innerHTML   = ok
+    ? '<div class="fb-title-c">CORRECT!</div>'
+    : '<div class="fb-title-w">WRONG!</div>';
+  document.getElementById('fb-msg').textContent   = d.exp;
+  document.getElementById('next-btn').textContent = T().step === Q.length - 1 ? 'Finish! 🏁' : 'Next Clue →';
+};
+
+window.nextStep = () => {
+  localTeams[ci].step++;
+  localTeams[ci].waitQ = false;
+  if (localTeams[ci].step >= Q.length) {
+    localTeams[ci].done = true;
+    pushTeam(ci, localTeams[ci]);
+    pushAct('🏆 ' + localTeams[ci].name + ' COMPLETED THE QUEST!', '🏆');
+    showWin();
+  } else {
+    pushTeam(ci, localTeams[ci]);
+    drawGame();
+  }
+};
+
+function showWin() {
+  const t = T();
+  document.getElementById('win-team').textContent  = t.emoji + ' ' + t.name;
+  document.getElementById('win-score').textContent = t.correct + ' correct · ' + t.wrong + ' wrong';
+  go('win');
+}
+
+// ── PARENT ────────────────────────────────────────────────────────────────────
+window.pnav = i => {
+  if (document.getElementById('p' + i).value && i < 3)
+    document.getElementById('p' + (i + 1)).focus();
+};
+window.checkPin = () => {
+  const pin = [0,1,2,3].map(i => document.getElementById('p'+i).value).join('');
+  if (pin === localPin) { go('dashboard'); }
+  else {
+    const h = document.getElementById('pin-hint');
+    h.textContent = '❌ Wrong PIN!'; h.style.color = '#ff2d78';
+    [0,1,2,3].forEach(i => document.getElementById('p'+i).value = '');
+    document.getElementById('p0').focus();
+  }
+};
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function drawDash() {
+  const teams  = localTeams;
+  const sorted = [...teams].sort((a,b) => b.step - a.step || b.correct - a.correct);
+  const leader = sorted[0];
+
+  // Team standings
+  document.getElementById('dash-teams').innerHTML = teams.map(t => {
+    const isLead    = leader && t.name === leader.name && t.step > 0;
+    const qi        = routeIndex(t, t.step);
+    const clueLabel = t.done
+      ? '🏁 Finished!'
+      : t.step >= ROUTE_LENGTH
+        ? '⭐ FINALE — Q11'
+        : 'On clue ' + (t.step + 1) + ' of 11 (Q' + (qi + 1) + ')';
+    return `<div class="tp ${isLead ? 'lead' : ''}">
+      ${isLead ? '<div style="font-size:0.6rem;font-weight:900;color:#ffe600;margin-bottom:6px">👑 LEADING</div>' : ''}
+      <div class="tp-top">
+        <span style="font-size:1.8rem">${t.emoji}</span>
+        <div>
+          <div class="tp-name">${t.name}</div>
+          <div class="tp-status">${clueLabel}</div>
+        </div>
+      </div>
+      <div class="tp-bar-bg"><div class="tp-bar" style="width:${t.step / 11 * 100}%"></div></div>
+      <div class="tp-stats">
+        <span>Progress: ${t.step}/11</span>
+        <span>✅ ${t.correct} &nbsp; ❌ ${t.wrong}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Activity feed
+  const feed = document.getElementById('act-feed');
+  if (!liveActs.length) {
+    feed.innerHTML = '<div class="act-item"><span>🎮</span><span style="color:#888">Waiting for teams to start…</span></div>';
+  } else {
+    feed.innerHTML = [...liveActs].reverse().slice(0, 20).map(a => `
+      <div class="act-item">
+        <span>${a.icon}</span><span>${a.text}</span>
+        <span class="act-time">${a.time}</span>
+      </div>`).join('');
+  }
+
+  // Clue map
+  document.getElementById('qmap-list').innerHTML = Q.map((d, i) => {
+    const isFinale   = i === FINALE_INDEX;
+    const teamsHere  = teams.filter(t => !t.done && routeIndex(t, t.step) === i).length;
+    const cls        = isFinale
+      ? (teams.some(t => t.step >= ROUTE_LENGTH) ? 'qn-cur' : 'qn-up')
+      : (teamsHere > 0 ? 'qn-cur' : 'qn-up');
+    return `<div class="qmap-item">
+      <div class="qnum ${cls}">${i + 1}${isFinale ? '⭐' : ''}</div>
+      <div style="flex:1">
+        ${isFinale ? '<strong style="color:#ffe600">FINALE: </strong>' : ''}
+        ${d.clue} <span style="color:#555;font-size:0.72rem">(code: ${d.code})</span>
+      </div>
+      <div class="qmap-topic">${d.tl}</div>
+    </div>`;
+  }).join('');
+
+  // ── Q&A panel (accordion) ──────────────────────────────────────────────────
+  const L = ['A','B','C','D'];
+  document.getElementById('qa-list').innerHTML = Q.map((d, i) => {
+    const isFinale = i === FINALE_INDEX;
+    const opts = d.opts.map((o, oi) => `
+      <div class="qa-opt ${oi === d.ans ? 'qa-correct' : ''}">
+        <span class="qa-opt-l">${L[oi]}</span>
+        ${o}
+        ${oi === d.ans ? ' <span style="margin-left:auto;font-size:0.75rem">✅ correct</span>' : ''}
+      </div>`).join('');
+    return `
+      <div class="qa-card" id="qa-${i}">
+        <div class="qa-header" onclick="toggleQA(${i})">
+          <div class="qa-num ${isFinale ? 'finale' : ''}">${i + 1}${isFinale ? '⭐' : ''}</div>
+          <div class="qa-clue-text">${d.icon} ${d.clue}</div>
+          <div class="qa-code">🔑 ${d.code}</div>
+          <span class="qa-chevron">▼</span>
+        </div>
+        <div class="qa-body">
+          <div class="qa-topic">
+            <span class="topic-badge ${d.tb}">${d.tl}</span>
+          </div>
+          <div class="qa-question">${d.q}</div>
+          ${opts}
+          <div class="qa-exp">${d.exp}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+window.drawDash = drawDash;
+
+// Accordion toggle — keeps others open so parent can scan multiple at once
+window.toggleQA = i => {
+  document.getElementById('qa-' + i).classList.toggle('open');
+};
+
+window.resetGame = async () => {
+  if (!confirm('Reset ALL team progress? Cannot be undone!')) return;
+  localTeams = localTeams.map((t, i) => makeTeam(t, i, localTeams.length));
+  const to = {};
+  localTeams.forEach((t, i) => to[i] = t);
+  await fbSet('game', {teams: to, pin: localPin, activity: {}});
+  liveActs = []; drawDash(); showToast('All progress reset 🔄');
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, err) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'toast show' + (err ? ' err' : '');
+  setTimeout(() => el.className = 'toast', 2600);
+}
+window.showToast = showToast;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await loadFromFB();
+  startListening();
+  drawSetup();
+})();
+</script>
+</body>
+</html>
